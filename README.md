@@ -2,6 +2,7 @@
 
 ## Main Objective:
 To study Manovich's third characteristic of "new media" via Cellular Automata.
+[*New Media: A User's Guide*](http://manovich.net/index.php/projects/new-media-a-user-s-guide)
 
 ## Why?:
 
@@ -15,7 +16,9 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 - [ ] Program a draft of Conway's Game of Life
 - [ ] Begin the real project
 - [ ] Program Conway's Game of Life
-- [ ] 
+- [ ] Program the iterations that I want to display
+- - [ ] Soundlife
+- - [ ] Lenia
 
 # Timeline:
 
