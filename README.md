@@ -12,10 +12,10 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 * This study will show the progression of the iterations of Conway's Game of life, and John Von Neuman's Universal Constuctor.
 
 # Roadmap:
-- [] Program a draft of Conway's Game of Life
-- [] Begin the real project
-- [] Program Conway's Game of Life
-- [] 
+- [ ] Program a draft of Conway's Game of Life
+- [ ] Begin the real project
+- [ ] Program Conway's Game of Life
+- [ ] 
 
 # Timeline:
 
