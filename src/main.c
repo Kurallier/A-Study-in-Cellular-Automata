@@ -12,7 +12,7 @@
 
 #define WINDOW_W 680
 #define WINDOW_H 480
-#define WINDOW_NAME "Window"
+#define WINDOW_NAME "Cellular Automata"
 
 SDL_Texture *texture;
 
