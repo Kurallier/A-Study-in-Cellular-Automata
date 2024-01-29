@@ -10,11 +10,10 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
-#define WINDOW_W 680
+#define WINDOW_W 640
 #define WINDOW_H 480
 #define WINDOW_NAME "Cellular Automata"
 
-SDL_Texture *texture;
 
 SDL_Window *main_Window = NULL;
 SDL_Renderer *main_Renderer = NULL;
@@ -22,11 +21,13 @@ int func_SDL_Init();
 
 void func_SDL_Exit(void);
 
+void func_Engine_Draw_Cells(void);
+
 int main(int argv, char *argc[])
 {
     func_SDL_Init();
 
-
+    //main loop
     int windowOpen = 1;
     while(windowOpen != 0)
     {
@@ -48,9 +49,9 @@ int main(int argv, char *argc[])
             }
         }
 
+        //Set BG color
         SDL_SetRenderDrawColor(main_Renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(main_Renderer);
-
 
         SDL_RenderPresent(main_Renderer);
     }
@@ -96,4 +97,9 @@ void func_SDL_Exit(void)
     SDL_DestroyRenderer(main_Renderer);
     SDL_DestroyWindow(main_Window);
     SDL_Quit();
+}
+
+void func_Engine_Draw_Cells(void)
+{
+
 }
