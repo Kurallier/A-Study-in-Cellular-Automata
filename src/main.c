@@ -5,6 +5,7 @@
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_scancode.h>
+#include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_video.h>
 #include <stdio.h>
@@ -20,8 +21,6 @@ SDL_Renderer *main_Renderer = NULL;
 int func_SDL_Init();
 
 void func_SDL_Exit(void);
-
-void func_Engine_Draw_Cells(void);
 
 int main(int argv, char *argc[])
 {
@@ -52,6 +51,8 @@ int main(int argv, char *argc[])
         //Set BG color
         SDL_SetRenderDrawColor(main_Renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(main_Renderer);
+
+        SDL_SetRenderDrawColor(main_Renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
 
         SDL_RenderPresent(main_Renderer);
     }
@@ -99,7 +100,3 @@ void func_SDL_Exit(void)
     SDL_Quit();
 }
 
-void func_Engine_Draw_Cells(void)
-{
-
-}
