@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "../lib/engine_Conway.h"
 
-const int WINDOW_W = 30;
-const int WINDOW_H = 30;
+const int WINDOW_W = 10;
+const int WINDOW_H = 10;
 
 int main(int argv, char *argc[])
 {
