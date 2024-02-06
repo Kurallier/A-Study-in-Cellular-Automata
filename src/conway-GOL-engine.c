@@ -1,6 +1,5 @@
 //TODO:
 //Figure out how to pass the arrays to the functions
-#include <cstddef>
 #include <stdio.h>
 #include "../lib/engine_Conway.h"
 
