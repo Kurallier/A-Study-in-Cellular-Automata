@@ -16,8 +16,8 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 
 # TODO/Roadmap:
 
-- [ ] Program a draft of Conway's Game of Life
-- [ ] Begin the real project
+- [x] Program a draft of Conway's Game of Life
+- [x] Begin the real project
 - [ ] Program Conway's Game of Life
 - [ ] Program the iterations that I want to display
     - [ ] Soundlife
