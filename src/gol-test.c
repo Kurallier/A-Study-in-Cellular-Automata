@@ -96,7 +96,7 @@ int main(int argv, char* argc[])
 int print_Ascii(void)
 {
     FILE* fp_ascii = NULL;
-    char ascii_path[] = "ascii.txt", c;
+    char ascii_path[] = "../assets/ascii.txt", c;
 
     fp_ascii = fopen(ascii_path, "r");
     if(fp_ascii == NULL)
