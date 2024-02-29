@@ -18,17 +18,20 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 
 - [x] Program a draft of Conway's Game of Life
 - [x] Begin the project
-    - [x] Basic Camera Functionality
+    - [x] Basic Camera Functionality 
+    - [ ] Framerate/Game tick system 
     - [ ] Create the Canvas
         - [ ] Random seeding and cell movement 
+    - [ ] Game statistics 
     - [ ] Interactability with the Canvas
         - [ ] Keyboard hotkeys and functionality
-        - [ ] Mouse/cursor interaction 
+        - [ ] Mouse/cursor interaction   
     - [ ] Implement a main menu 
     - [ ] Implement Cellular Automata
         - [ ] Conway's Game of Life
         - [ ] [*Smoothlife*](https://github.com/duckythescientist/SmoothLife)
-        - [ ] [*Lenia*](https://github.com/Chakazul/Lenia) 
+        - [ ] [*Lenia*](https://github.com/Chakazul/Lenia)
+        - [ ] Real time adjustment to rules  
 
 # Timeline:
 | Task | Date |
