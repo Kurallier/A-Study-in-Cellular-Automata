@@ -52,6 +52,7 @@ int main(int argv, char *argc[])
     //The offsets create a border around the window
     SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
 
+
     const int rPoint = 300000;
     SDL_Point Points[rPoint];
     func_SDL_Create_Populate_Rand_Points(SCREEN_W, SCREEN_H, rPoint, Points);
