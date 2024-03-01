@@ -46,12 +46,6 @@ int main(int argv, char *argc[])
 
 
     
-    for(size_t i = 0; i < 100; i++)
-    {
-
-
-    }
-
     //Main loop
     int windowOpen = 1;
     while(windowOpen != 0)
