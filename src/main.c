@@ -4,8 +4,12 @@
 #include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_video.h>
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 //Setting defualt window values
 const char WINDOW_NAME[] = "A Study in Cellular Automata";
@@ -25,9 +29,13 @@ void func_SDL_Exit(SDL_Window* main_Window, SDL_Renderer*, SDL_Texture*);
 //Used to prepare the camera for drawing
 int func_SDL_Render_Camera(SDL_Rect, SDL_FRect, SDL_Renderer*, SDL_Texture*);
 
+void func_SDL_Create_Populate_Rand_Points(int w, int h, int num,SDL_Point* pointArr);
+
 
 int main(int argv, char *argc[])
 {
+    srand(time(NULL));
+
     m_Window = SDL_CreateWindow(
             WINDOW_NAME, 
             SDL_WINDOWPOS_UNDEFINED, 
@@ -40,18 +48,14 @@ int main(int argv, char *argc[])
     m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
 
     //Divide screen by 32 to zoom(stretch) texture 
-    SDL_Rect camSource = { 0, 0, SCREEN_W/32, SCREEN_H/32};
+    SDL_Rect camSource = {SCREEN_W/32, SCREEN_H/32, (double)SCREEN_W/32, (double)SCREEN_H/32};
     //The offsets create a border around the window
     SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
 
-
+    const int rPoint = 300000;
+    SDL_Point Points[rPoint];
+    func_SDL_Create_Populate_Rand_Points(SCREEN_W, SCREEN_H, rPoint, Points);
     
-    for(size_t i = 0; i < 100; i++)
-    {
-
-
-    }
-
     //Main loop
     int windowOpen = 1;
     while(windowOpen != 0)
@@ -74,27 +78,43 @@ int main(int argv, char *argc[])
                 //To move Camera
                 //W is up, S is down, A is left, and D is right
                 case SDLK_w:
-                    camSource.y -= 3;
+                    if(camSource.y > 0)
+                    {
+                        camSource.y -= 1;
+                    }
                     break;
                 case SDLK_s:
-                    camSource.y += 3;
+                    if(camSource.y < CANVAS_H)
+                    {
+                        camSource.y += 1;
+                    }
                     break;
                 case SDLK_a:
-                    camSource.x -= 3;
+                    if(camSource.x > 0)
+                    {
+                        camSource.x -= 1;
+                    }
                     break;
                 case SDLK_d:
-                    camSource.x += 3;
+                    if(camSource.x < CANVAS_W)
+                    {
+                        camSource.x += 1;
+                    }
                     break;
                 //To zoom in and out
-                // 1 is zoom in
-                // 2 is zoom out
+                // 1 is zoom out
+                // 2 is zoom in
                 case SDLK_1:
-                    camSource.w *= 2;
-                    camSource.h *= 2;
+                    if(camSource.w * camSource.h < CANVAS_W * CANVAS_H)
+                    {
+                        camSource.w *= 1.1;
+                        camSource.h *= 1.1;
+                    }
                     break;
+                    //TODO: WHY CAMERA BREAK???
                 case SDLK_2:
-                    camSource.w /= 2;
-                    camSource.h /= 2;
+                    camSource.w /= 1.1;
+                    camSource.h /= 1.1;
                     break;
             }
         }
@@ -103,12 +123,24 @@ int main(int argv, char *argc[])
         SDL_SetRenderTarget(m_Renderer, m_Texture);
         SDL_SetRenderDrawColor(m_Renderer, 255,255,255, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(m_Renderer);
+
+        //Draw random points
+        SDL_SetRenderTarget(m_Renderer, m_Texture);
+        SDL_SetRenderDrawColor(m_Renderer, 255,0,0, SDL_ALPHA_OPAQUE);
+        SDL_RenderDrawPoints(m_Renderer, Points, rPoint);
+
         //Prepare camera
-        func_SDL_Render_Camera(camSource, camPresentF, m_Renderer, m_Texture);
+        //func_SDL_Render_Camera(camSource, camPresentF, m_Renderer, m_Texture);
+        SDL_SetRenderTarget(m_Renderer, NULL);
+        SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+        SDL_RenderClear(m_Renderer);
+        SDL_RenderCopyF(m_Renderer, m_Texture, &camSource, &camPresentF);
 
         //Final draw call
         SDL_RenderPresent(m_Renderer);
-
+        
+        //Hacked 60fps
+        SDL_Delay(16);
     }
 
     func_SDL_Exit(m_Window, m_Renderer, m_Texture);
@@ -134,3 +166,14 @@ int func_SDL_Render_Camera(SDL_Rect camSource, SDL_FRect camPresentF, SDL_Render
     return 0;
 }
 
+void func_SDL_Create_Populate_Rand_Points(int w, int h, int num ,SDL_Point* pointArr)
+{
+    int arrySize = sizeof(&pointArr);
+    for(size_t i = 0; i < arrySize; i++)
+    {
+        pointArr->x = (rand() % w);
+        pointArr->y = (rand() % h);
+        pointArr += sizeof(SDL_Point);
+    }
+
+}
