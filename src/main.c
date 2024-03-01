@@ -23,7 +23,8 @@ SDL_Texture* m_Texture;
 //SDL cleanup
 void func_SDL_Exit(SDL_Window* main_Window, SDL_Renderer*, SDL_Texture*);
 //Used to prepare the camera for drawing
-int func_SDL_Render_Camera(SDL_Rect, SDL_Rect, SDL_Renderer*, SDL_Texture*);
+int func_SDL_Render_Camera(SDL_Rect, SDL_FRect, SDL_Renderer*, SDL_Texture*);
+
 
 int main(int argv, char *argc[])
 {
@@ -38,8 +39,18 @@ int main(int argv, char *argc[])
 
     m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
 
+    //Divide screen by 32 to zoom(stretch) texture 
     SDL_Rect camSource = { 0, 0, SCREEN_W/32, SCREEN_H/32};
-    SDL_Rect camPresent = { 10, 10, SCREEN_W-20, SCREEN_H-20};
+    //The offsets create a border around the window
+    SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
+
+
+    
+    for(size_t i = 0; i < 100; i++)
+    {
+
+
+    }
 
     //Main loop
     int windowOpen = 1;
@@ -93,7 +104,7 @@ int main(int argv, char *argc[])
         SDL_SetRenderDrawColor(m_Renderer, 255,255,255, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(m_Renderer);
         //Prepare camera
-        func_SDL_Render_Camera(camSource, camPresent, m_Renderer, m_Texture);
+        func_SDL_Render_Camera(camSource, camPresentF, m_Renderer, m_Texture);
 
         //Final draw call
         SDL_RenderPresent(m_Renderer);
@@ -113,12 +124,13 @@ void func_SDL_Exit(SDL_Window* main_Window, SDL_Renderer* main_Renderer, SDL_Tex
     SDL_Quit();
 }
 
-int func_SDL_Render_Camera(SDL_Rect camSource, SDL_Rect camPresent, SDL_Renderer* renderer, SDL_Texture* texture)
+int func_SDL_Render_Camera(SDL_Rect camSource, SDL_FRect camPresentF, SDL_Renderer* renderer, SDL_Texture* texture)
 {
     SDL_SetRenderTarget(renderer, NULL);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, &camSource, &camPresent);
+    SDL_RenderCopyF(renderer, texture, &camSource, &camPresentF);
 
     return 0;
 }
+
