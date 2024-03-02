@@ -1,2 +1,5 @@
 ./OLD-FILES
 ./bin/Makefile
+./bin/*.out
+./bin/*.o
+

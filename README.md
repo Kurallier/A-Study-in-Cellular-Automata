@@ -20,8 +20,8 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 - [x] Begin the project
     - [x] Basic Camera Functionality 
     - [ ] Framerate/Game tick system 
-    - [ ] Create the Canvas
-        - [ ] Random seeding and cell movement 
+    - [x] Create the Canvas
+        - [x] Random seeding and cell movement 
     - [ ] Game statistics 
     - [ ] Interactability with the Canvas
         - [ ] Keyboard hotkeys and functionality
@@ -36,7 +36,7 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 # Timeline:
 | Task | Date |
 |:----:|:----:|
-| 1-2 minute demostration | 2/20 |
+| ~~1-2 minute demostration~~ | ~~2/20~~ |
 | Complete Project | 4/22 |
 
 # Credits:
