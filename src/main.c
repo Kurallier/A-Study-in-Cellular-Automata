@@ -193,13 +193,13 @@ int SDL_Render_Camera(SDL_Rect camSource, SDL_FRect camPresentF, SDL_Renderer* r
 
 int SDL_Render_Emplace_Automata_Matrix(Automata** AutomataMatrix, int canvas_w, int canvas_h, SDL_Renderer* m_renderer, SDL_Texture* m_texture)
 {
+    SDL_SetRenderTarget(m_renderer, m_texture);
     for(size_t i = 0; i < canvas_w; i++)
     {
         for(size_t j = 0; j < canvas_h; j++)
         {
            if(AutomataMatrix[i][j].state == CELL_ALIVE)
            {
-               SDL_SetRenderTarget(m_renderer, m_texture);
                SDL_SetRenderDrawColor(m_renderer, AutomataMatrix[i][j].r,AutomataMatrix[i][j].g,AutomataMatrix[i][j].b,AutomataMatrix[i][j].a);
                SDL_RenderDrawPoint(m_renderer, AutomataMatrix[i][j].pos_X, AutomataMatrix[i][j].pos_Y);
            }
