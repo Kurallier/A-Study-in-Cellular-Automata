@@ -21,6 +21,7 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 
 - Features & Functionality
     - [ ] Implement a main menu 
+    - [ ] Real time adjustment to rules  
     - Optimizations
         - [ ] Framerate/Game tick system 
         - [ ] ~~Endless refactoring~~
@@ -42,7 +43,6 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
         - [x] Conway's Game of Life
         - [ ] [*Smoothlife*](https://github.com/duckythescientist/SmoothLife)
         - [ ] [*Lenia*](https://github.com/Chakazul/Lenia)
-        - [ ] Real time adjustment to rules  
     - Canvas/Playspace
         - [x] Create the Canvas
         - [x] Random seeding and cell movement 
