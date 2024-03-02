@@ -2,12 +2,13 @@
 #define CONWAY_ENGINE_H
 
 #include <SDL2/SDL_rect.h>
+#include <SDL2/SDL_render.h>
 #include <stdint.h>
 
 typedef enum cellState
 {
-    CELL_DEAD,
-    CELL_ALIVE
+    CELL_DEAD = 0,
+    CELL_ALIVE = 1,
 }cellState;
 
 typedef struct Automata
@@ -27,5 +28,9 @@ int conway_Automata_Matrix_Destroy(Automata** matrix, int row, int col);
 int conway_Automata_Matrix_Modify(Automata** matrix, int oldRow, int oldCol, int newRows, int newCols);
 
 int conway_Automata_Matrix_Seed(Automata** matrix, int row, int col, int num);
+
+int conway_Generation_Next(int canvW, int canvH, Automata** matrix);
+
+int SDL_Render_Emplace_Automata_Matrix(Automata** AutomataMatrix, int canvas_w, int canvas_h, SDL_Renderer* m_renderer, SDL_Texture* m_texture);
 
 #endif

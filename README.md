@@ -11,27 +11,43 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 
 - This study will be using Conway's Game of Life as a foundation to study Cellular Automata, and iterations on it such a Lenia.
 - This study will be visuallized to a user by an interactable program containing all of the algorithms.
-    -This software will be written in C, using the SDL2 libaries to provide the visuals.
+    - This software will be written in C, using the SDL2 libaries to provide the visuals.
 - This study will show the progression of the iterations of Conway's Game of life, and John Von Neuman's Universal Constuctor.
 
 # TODO/Roadmap:
 
 - [x] Program a draft of Conway's Game of Life
 - [x] Begin the project
-    - [x] Basic Camera Functionality 
-    - [ ] Framerate/Game tick system 
-    - [x] Create the Canvas
-        - [x] Random seeding and cell movement 
-    - [ ] Game statistics 
-    - [ ] Interactability with the Canvas
-        - [ ] Keyboard hotkeys and functionality
-        - [ ] Mouse/cursor interaction   
+
+- Features & Functionality
     - [ ] Implement a main menu 
-    - [ ] Implement Cellular Automata
-        - [ ] Conway's Game of Life
+    - Optimizations
+        - [ ] Framerate/Game tick system 
+        - [ ] ~~Endless refactoring~~
+    - Game statistics 
+        - [ ] Cell count
+        - [ ] fps counter
+        - [ ] $\Delta$ time
+
+- UI/UX & QOL
+    - Camera
+        - [x] Basic Camera Functionality 
+        - [ ] Smooth Wrap around canvas
+    - Input
+        - [ ] Keyboard hotkeys for special functions
+        - [ ] Mouse/cursor interaction   
+
+- Core Aspects
+    - Cellular Automata
+        - [x] Conway's Game of Life
         - [ ] [*Smoothlife*](https://github.com/duckythescientist/SmoothLife)
         - [ ] [*Lenia*](https://github.com/Chakazul/Lenia)
         - [ ] Real time adjustment to rules  
+    - Canvas/Playspace
+        - [x] Create the Canvas
+        - [x] Random seeding and cell movement 
+        - [ ] Add wrap around functionality
+
 
 # Timeline:
 | Task | Date |

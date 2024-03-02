@@ -20,6 +20,9 @@ const size_t CANVAS_H = 2500;
 //The screen width and height are for the camera; what is to be shown to the user
 const size_t SCREEN_W = 1240;
 const size_t SCREEN_H = 1080;
+//An array that holds relevant RGBA colors
+const size_t BACKGROUND_COLOR[] = {41, 41, 48, 1};
+const size_t CELL_COLOR[] = {239, 107, 31, 1};
 //Creating pointers for SDL
 SDL_Window* m_Window;
 SDL_Renderer* m_Renderer;
@@ -32,11 +35,10 @@ int SDL_Render_Camera(SDL_Rect, SDL_FRect, SDL_Renderer*, SDL_Texture*);
 
 int internal_SDL_Init(SDL_Window* m_Window, SDL_Renderer* m_Renderer, SDL_Texture* m_Texture);
 
-int SDL_Render_Emplace_Automata_Matrix(Automata** AutomataMatrix, int canvas_w, int canvas_h, SDL_Renderer* m_renderer, SDL_Texture* m_texture);
+void Conways_Game_Of_Life_Running(Automata** Cell_Matrix, int canvas_W, int canvas_H, SDL_Renderer* m_renderer, SDL_Texture* m_texture);
 
 int main(int argv, char *argc[])
 {
-    srand(time(NULL));
 
     //internal_SDL_Init(m_Window, m_Renderer, m_Texture);
 
@@ -52,13 +54,13 @@ int main(int argv, char *argc[])
     m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
 
     //Divide screen by 32 to zoom(stretch) texture 
-    SDL_Rect camSource = {SCREEN_W/2, SCREEN_H/2, (double)SCREEN_W/32, (double)SCREEN_H/32};
+    SDL_Rect camSource = {SCREEN_W/2, SCREEN_H/2, (double)SCREEN_W/12, (double)SCREEN_H/12};
     //The offsets create a border around the window
     SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
 
-    Automata** ConwayPixels = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, 255, 0 , 0, 255);
+    Automata** ConwayPixels = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
     //Randomize if pixels should be alive or not
-    conway_Automata_Matrix_Seed(ConwayPixels, CANVAS_W, CANVAS_H, 1);
+    conway_Automata_Matrix_Seed(ConwayPixels, CANVAS_W, CANVAS_H, (SCREEN_W*SCREEN_H)/4);
 
     //Main loop
     int windowOpen = 1;
@@ -132,11 +134,13 @@ int main(int argv, char *argc[])
         }
         //Wipe the texture and renderer white
         SDL_SetRenderTarget(m_Renderer, m_Texture);
-        SDL_SetRenderDrawColor(m_Renderer, 255,255,255, SDL_ALPHA_OPAQUE);
+        SDL_SetRenderDrawColor(m_Renderer, BACKGROUND_COLOR[0],BACKGROUND_COLOR[1],BACKGROUND_COLOR[2], SDL_ALPHA_OPAQUE);
         SDL_RenderClear(m_Renderer);
 
         //Draw the Automata Matrix
         SDL_Render_Emplace_Automata_Matrix(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
+        conway_Generation_Next(CANVAS_W, CANVAS_H, ConwayPixels);
+        //Conways_Game_Of_Life_Running(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
 
         //Prepare camera
         //func_SDL_Render_Camera(camSource, camPresentF, m_Renderer, m_Texture);
@@ -149,7 +153,7 @@ int main(int argv, char *argc[])
         SDL_RenderPresent(m_Renderer);
         
         //Hacked 60fps
-        SDL_Delay(8);
+        SDL_Delay(16);
     }
 
     SDL_Exit(m_Window, m_Renderer, m_Texture);
@@ -190,28 +194,9 @@ int SDL_Render_Camera(SDL_Rect camSource, SDL_FRect camPresentF, SDL_Renderer* r
     return 0;
 }
 
-
-int SDL_Render_Emplace_Automata_Matrix(Automata** AutomataMatrix, int canvas_w, int canvas_h, SDL_Renderer* m_renderer, SDL_Texture* m_texture)
+void Conways_Game_Of_Life_Running(Automata** Cell_Matrix, int canvas_W, int canvas_H, SDL_Renderer* m_renderer, SDL_Texture* m_texture)
 {
-    SDL_SetRenderTarget(m_renderer, m_texture);
-    for(size_t i = 0; i < canvas_w; i++)
-    {
-        for(size_t j = 0; j < canvas_h; j++)
-        {
-           if(AutomataMatrix[i][j].state == CELL_ALIVE)
-           {
-               SDL_SetRenderDrawColor(m_renderer, AutomataMatrix[i][j].r,AutomataMatrix[i][j].g,AutomataMatrix[i][j].b,AutomataMatrix[i][j].a);
-               SDL_RenderDrawPoint(m_renderer, AutomataMatrix[i][j].pos_X, AutomataMatrix[i][j].pos_Y);
-           }
-        }
-    }
-    return 0;
+   SDL_Render_Emplace_Automata_Matrix(Cell_Matrix, canvas_W, canvas_H, m_renderer, m_texture);
+
+   conway_Generation_Next(canvas_W, canvas_H, Cell_Matrix);
 }
-
-
-
-
-
-
-
-
