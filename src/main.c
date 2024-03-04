@@ -57,8 +57,9 @@ int main(int argv, char *argc[])
 
     m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
 
+    //TODO: Make the camera it's own structure/object. Should have both the source and present, xVel yVel, zoomVel
     //Divide screen by 32 to zoom(stretch) texture 
-    SDL_Rect camSource = {SCREEN_W/2, SCREEN_H/2, (double)SCREEN_W/12, (double)SCREEN_H/12};
+    SDL_Rect camSource = {SCREEN_W/2, SCREEN_H/2, (double)SCREEN_W/10, (double)SCREEN_H/10};
     //The offsets create a border around the window
     SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
 
@@ -74,71 +75,7 @@ int main(int argv, char *argc[])
         SDL_Event windowEvent;
         while(SDL_PollEvent(&windowEvent))
         {
-            windowOpen = handle_Window_Events(&windowEvent, &camSource, SCREEN_W, SCREEN_H);
-            /*
-            //TODO, change to if statments
-            switch(windowEvent.type)
-            {
-                case SDL_QUIT:
-                    windowOpen = 0;
-                    break;
-            }
-
-            switch(windowEvent.key.keysym.sym)
-            {
-                case SDLK_ESCAPE:
-                    windowOpen = 0;
-                    break;
-                    //To move Camera
-                    //W is up, S is down, A is left, and D is right
-                case SDLK_w:
-                    if(camSource.y > 0)
-                    {
-                        camSource.y -= 1;
-                    }
-                    break;
-                case SDLK_s:
-                    if(camSource.y < CANVAS_H)
-                    {
-                        camSource.y += 1;
-                    }
-                    break;
-                case SDLK_a:
-                    if(camSource.x > 0)
-                    {
-                        camSource.x -= 1;
-                    }
-                    break;
-                case SDLK_d:
-                    if(camSource.x < CANVAS_W)
-                    {
-                        camSource.x += 1;
-                    }
-                    break;
-                    //To reset camera
-                case SDLK_LSHIFT + SDLK_r:
-                    camSource.x = SCREEN_W/2;
-                    camSource.y = SCREEN_H/2;
-                    camSource.w = (double)SCREEN_W/32;
-                    camSource.h = (double)SCREEN_H/32;
-                    break;
-                    //To zoom in and out
-                    // 1 is zoom out
-                    // 2 is zoom in
-                case SDLK_1:
-                    if(camSource.w * camSource.h < CANVAS_W * CANVAS_H)
-                    {
-                        camSource.w *= 1.1;
-                        camSource.h *= 1.1;
-                    }
-                    break;
-                    //TODO: WHY CAMERA BREAK???
-                case SDLK_2:
-                    camSource.w /= 1.1;
-                    camSource.h /= 1.1;
-                    break;
-            }
-            */
+            windowOpen = handle_Window_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H);
         }
         //Wipe the texture and renderer white
         SDL_SetRenderTarget(m_Renderer, m_Texture);
@@ -153,7 +90,9 @@ int main(int argv, char *argc[])
         //Conways_Game_Of_Life_Running(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
 
         //Prepare camera
-        internal_SDL_Render_Camera_Resize(&camSource, &camPresentF, SCREEN_W, SCREEN_H, m_Window);
+        //This breaks the camera movement
+        //internal_SDL_Render_Camera_Resize(&camSource, &camPresentF, SCREEN_W, SCREEN_H, m_Window);
+        
         SDL_Render_Camera(&camSource, &camPresentF, m_Renderer, m_Texture);
 
         //Final draw call
@@ -208,7 +147,7 @@ int SDL_Render_Camera(SDL_Rect* camSource, SDL_FRect* camPresentF, SDL_Renderer*
 /*
  * \Not a perfect solution, but will work for now
  * \Doesn't resize the window width for an unkown reason, TBF
- */
+ * \Breaks window movement, will fix later
 int internal_SDL_Render_Camera_Resize(SDL_Rect* camS, SDL_FRect* camPresF, int screenW, int screenH, SDL_Window* window)
 {
     int* screnW = NULL;
@@ -217,24 +156,26 @@ int internal_SDL_Render_Camera_Resize(SDL_Rect* camS, SDL_FRect* camPresF, int s
     int* screnH = NULL;
     screnH = &screenW;
 
-    /*
+    *
     float* screnW_F = NULL;
     screnW_F = &screenW;
 
     float* screnH_F = NULL;
     screnH_F = &screenW;
-    */
+    *
 
     SDL_GetWindowSize(window, screnW, screnH);
 
     if((*screnW != SCREEN_W))
     {
+        printf("Window Width being resized");
         camS->w = *screnW/12;
         camPresF->w = *screnW-20;
 
     }
     if((*screnH != SCREEN_H))
     {
+        printf("Window Height being resized");
         camS->h = *screnH/12;
         camPresF->h = *screnH-20;
 
@@ -245,6 +186,7 @@ int internal_SDL_Render_Camera_Resize(SDL_Rect* camS, SDL_FRect* camPresF, int s
 
     return 0;
 }
+*/
 
 void Conways_Game_Of_Life_Running(Automata** Cell_Matrix, int canvas_W, int canvas_H, SDL_Renderer* m_renderer, SDL_Texture* m_texture)
 {

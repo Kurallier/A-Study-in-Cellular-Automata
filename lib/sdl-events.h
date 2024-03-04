@@ -7,6 +7,6 @@
 #include <SDL2/SDL_events.h>
 
 
-int handle_Window_Events(SDL_Event* win_Event, SDL_Rect* camS, int screenW, int screenH);
+int handle_Window_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH);
 
 #endif
