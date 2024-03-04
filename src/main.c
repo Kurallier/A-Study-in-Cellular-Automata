@@ -11,6 +11,7 @@
 #include <time.h>
 
 #include "../lib/conwayEngine.h"
+#include "../lib/sdl-events.h"
 
 //Setting defualt window values
 const char WINDOW_NAME[] = "A Study in Cellular Automata";
@@ -31,7 +32,9 @@ SDL_Texture* m_Texture;
 //SDL cleanup
 void SDL_Exit(SDL_Window* main_Window, SDL_Renderer*, SDL_Texture*);
 //Used to prepare the camera for drawing
-int SDL_Render_Camera(SDL_Rect, SDL_FRect, SDL_Renderer*, SDL_Texture*);
+int SDL_Render_Camera(SDL_Rect*, SDL_FRect*, SDL_Renderer*, SDL_Texture*);
+
+int internal_SDL_Render_Camera_Resize(SDL_Rect* camS, SDL_FRect* camPresF, int screenW, int screenH, SDL_Window*);
 
 int internal_SDL_Init(SDL_Window* m_Window, SDL_Renderer* m_Renderer, SDL_Texture* m_Texture);
 
@@ -42,6 +45,7 @@ int main(int argv, char *argc[])
 
     //internal_SDL_Init(m_Window, m_Renderer, m_Texture);
 
+    //TODO: Window resizaeability 
     m_Window = SDL_CreateWindow(
             WINDOW_NAME, 
             SDL_WINDOWPOS_UNDEFINED, 
@@ -59,8 +63,9 @@ int main(int argv, char *argc[])
     SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
 
     Automata** ConwayPixels = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
+    Automata** ConwayPixels_B = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
     //Randomize if pixels should be alive or not
-    conway_Automata_Matrix_Seed(ConwayPixels, CANVAS_W, CANVAS_H, (SCREEN_W*SCREEN_H)/4);
+    conway_Automata_Matrix_Seed(ConwayPixels, CANVAS_W, CANVAS_H, (SCREEN_W*SCREEN_H)/6);
 
     //Main loop
     int windowOpen = 1;
@@ -69,6 +74,8 @@ int main(int argv, char *argc[])
         SDL_Event windowEvent;
         while(SDL_PollEvent(&windowEvent))
         {
+            windowOpen = handle_Window_Events(&windowEvent, &camSource, SCREEN_W, SCREEN_H);
+            /*
             //TODO, change to if statments
             switch(windowEvent.type)
             {
@@ -82,8 +89,8 @@ int main(int argv, char *argc[])
                 case SDLK_ESCAPE:
                     windowOpen = 0;
                     break;
-                //To move Camera
-                //W is up, S is down, A is left, and D is right
+                    //To move Camera
+                    //W is up, S is down, A is left, and D is right
                 case SDLK_w:
                     if(camSource.y > 0)
                     {
@@ -108,16 +115,16 @@ int main(int argv, char *argc[])
                         camSource.x += 1;
                     }
                     break;
-                //To reset camera
+                    //To reset camera
                 case SDLK_LSHIFT + SDLK_r:
-                        camSource.x = SCREEN_W/2;
-                        camSource.y = SCREEN_H/2;
-                        camSource.w = (double)SCREEN_W/32;
-                        camSource.h = (double)SCREEN_H/32;
+                    camSource.x = SCREEN_W/2;
+                    camSource.y = SCREEN_H/2;
+                    camSource.w = (double)SCREEN_W/32;
+                    camSource.h = (double)SCREEN_H/32;
                     break;
-                //To zoom in and out
-                // 1 is zoom out
-                // 2 is zoom in
+                    //To zoom in and out
+                    // 1 is zoom out
+                    // 2 is zoom in
                 case SDLK_1:
                     if(camSource.w * camSource.h < CANVAS_W * CANVAS_H)
                     {
@@ -131,6 +138,7 @@ int main(int argv, char *argc[])
                     camSource.h /= 1.1;
                     break;
             }
+            */
         }
         //Wipe the texture and renderer white
         SDL_SetRenderTarget(m_Renderer, m_Texture);
@@ -139,22 +147,25 @@ int main(int argv, char *argc[])
 
         //Draw the Automata Matrix
         SDL_Render_Emplace_Automata_Matrix(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
-        conway_Generation_Next(CANVAS_W, CANVAS_H, ConwayPixels);
+
+        conway_Generation_Next(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
+
         //Conways_Game_Of_Life_Running(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
 
         //Prepare camera
-        //func_SDL_Render_Camera(camSource, camPresentF, m_Renderer, m_Texture);
-        SDL_SetRenderTarget(m_Renderer, NULL);
-        SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
-        SDL_RenderClear(m_Renderer);
-        SDL_RenderCopyF(m_Renderer, m_Texture, &camSource, &camPresentF);
+        internal_SDL_Render_Camera_Resize(&camSource, &camPresentF, SCREEN_W, SCREEN_H, m_Window);
+        SDL_Render_Camera(&camSource, &camPresentF, m_Renderer, m_Texture);
 
         //Final draw call
         SDL_RenderPresent(m_Renderer);
-        
-        //Hacked 60fps
-        SDL_Delay(16);
+
+        //Hacked 120fps
+        SDL_Delay(8);
     }
+
+    //Destroys the matricies
+    conway_Automata_Matrix_Destroy(ConwayPixels, CANVAS_W, CANVAS_H);
+    conway_Automata_Matrix_Destroy(ConwayPixels_B, CANVAS_W, CANVAS_H);
 
     SDL_Exit(m_Window, m_Renderer, m_Texture);
     return 0;
@@ -184,19 +195,60 @@ void SDL_Exit(SDL_Window* main_Window, SDL_Renderer* main_Renderer, SDL_Texture*
     SDL_Quit();
 }
 
-int SDL_Render_Camera(SDL_Rect camSource, SDL_FRect camPresentF, SDL_Renderer* renderer, SDL_Texture* texture)
+int SDL_Render_Camera(SDL_Rect* camSource, SDL_FRect* camPresentF, SDL_Renderer* renderer, SDL_Texture* texture)
 {
     SDL_SetRenderTarget(renderer, NULL);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    SDL_RenderCopyF(renderer, texture, &camSource, &camPresentF);
+    SDL_RenderCopyF(renderer, texture, camSource, camPresentF);
+
+    return 0;
+}
+
+/*
+ * \Not a perfect solution, but will work for now
+ * \Doesn't resize the window width for an unkown reason, TBF
+ */
+int internal_SDL_Render_Camera_Resize(SDL_Rect* camS, SDL_FRect* camPresF, int screenW, int screenH, SDL_Window* window)
+{
+    int* screnW = NULL;
+    screnW = &screenW;
+
+    int* screnH = NULL;
+    screnH = &screenW;
+
+    /*
+    float* screnW_F = NULL;
+    screnW_F = &screenW;
+
+    float* screnH_F = NULL;
+    screnH_F = &screenW;
+    */
+
+    SDL_GetWindowSize(window, screnW, screnH);
+
+    if((*screnW != SCREEN_W))
+    {
+        camS->w = *screnW/12;
+        camPresF->w = *screnW-20;
+
+    }
+    if((*screnH != SCREEN_H))
+    {
+        camS->h = *screnH/12;
+        camPresF->h = *screnH-20;
+
+    }
+
+    printf("WINDOW_W: %d | WINDOW_H %d\n", *screnW, *screnH);
+    printf("CAMERA_W: %02f | CAMERA_H: %02f \n", (camPresF->w), (camPresF->h));
 
     return 0;
 }
 
 void Conways_Game_Of_Life_Running(Automata** Cell_Matrix, int canvas_W, int canvas_H, SDL_Renderer* m_renderer, SDL_Texture* m_texture)
 {
-   SDL_Render_Emplace_Automata_Matrix(Cell_Matrix, canvas_W, canvas_H, m_renderer, m_texture);
+    SDL_Render_Emplace_Automata_Matrix(Cell_Matrix, canvas_W, canvas_H, m_renderer, m_texture);
 
-   conway_Generation_Next(canvas_W, canvas_H, Cell_Matrix);
+    //conway_Generation_Next(canvas_W, canvas_H, Cell_Matrix);
 }

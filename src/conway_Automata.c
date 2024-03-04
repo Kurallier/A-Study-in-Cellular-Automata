@@ -1,7 +1,6 @@
-#include <SDL2/SDL.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "../lib/conwayEngine.h"
+#include <pthread.h>
+#include <stdio.h>
 
 /*------------------------- Cell Matrix---------------------------------------------------------------------------*/
 
@@ -83,6 +82,7 @@ int conway_Automata_Matrix_Modify(Automata** matrix, int oldRow, int oldCol, int
 
 /*
  * \Frees up the memory of the 2d Automata array
+ * \Possibly broken as of now
  */
 int conway_Automata_Matrix_Destroy(Automata** matrix, int row, int col)
 {
@@ -93,7 +93,6 @@ int conway_Automata_Matrix_Destroy(Automata** matrix, int row, int col)
     return 0;
 }
 
-//TODO: Allow for only a certain amount of points to be made; i.e. wont rand() the whole array
 int conway_Automata_Matrix_Seed(Automata** matrix, int row, int col, int num)
 {
     /*
@@ -110,27 +109,6 @@ int conway_Automata_Matrix_Seed(Automata** matrix, int row, int col, int num)
     {
         matrix[(rand() % row)][(rand() % col)].state = CELL_ALIVE;
     }
-    return 0;
-}
-
-int internal_Conway_Automata_Matrix_Copy(int arrW, int arrH, Automata**source, Automata**dest)
-{
-    for(size_t i = 0; i < arrW; i++)
-    {
-        for(size_t j = 0; j < arrH; j++)
-        {
-            dest[i][j].pos_X = source[i][j].pos_X;
-            dest[i][j].pos_Y = source[i][j].pos_Y;
-
-            dest[i][j].r = source[i][j].r;
-            dest[i][j].g = source[i][j].g;
-            dest[i][j].b = source[i][j].b;
-            dest[i][j].a = source[i][j].a;
-
-            dest[i][j].state = source[i][j].state;
-        }
-    }
-
     return 0;
 }
 
@@ -155,7 +133,7 @@ Automata** conway_Automata_Matrix_Init(int canvW, int canvH, uint8_t r, uint8_t 
 
 int internal_Conway_Rules_Count_Alive(Automata** matrix, int cellX, int cellY, int canvW, int canvH)
 {
-    int live_Cells = 0;
+    int cell_Count = 0;
 
     for(int i = (cellX - 1); i <= (cellX + 1) ; i++)
     {
@@ -165,32 +143,60 @@ int internal_Conway_Rules_Count_Alive(Automata** matrix, int cellX, int cellY, i
             if(((i == cellX && j == cellY) || (i < 0 || j < 0)) || (i > (canvW - 1) || j > (canvH - 1)))
                 continue;
             if (matrix[i][j].state == CELL_ALIVE)
-                live_Cells++;
+                cell_Count++;
         }
     }
-    return live_Cells;
+    return cell_Count;
 }
 
-int internal_Conway_Rules_Apply(int cellX, int cellY, Automata **matrix, int live_Cells)
+int internal_Conway_Rules_Apply(int cellX, int cellY, Automata **matrix, int canvW, int canvH)
 {
-    if(((live_Cells == 2) || (live_Cells == 3)) && (matrix[cellX][cellY].state == CELL_ALIVE))
+    int live_Cells = internal_Conway_Rules_Count_Alive(matrix, cellX, cellY, canvW, canvH);
+    if((live_Cells == 2)  && (matrix[cellX][cellY].state == CELL_ALIVE))
     {
-        return matrix[cellX][cellY].state = CELL_ALIVE;
-        //return 1;
+        matrix[cellX][cellY].state = CELL_ALIVE;
+        return 0;
     }
     else if(live_Cells == 3)
     {
-        return matrix[cellX][cellY].state = CELL_ALIVE;
-        //return 1;
-    }
-    else if((live_Cells < 2) || (live_Cells > 4))
-    {
-        return matrix[cellX][cellY].state = CELL_DEAD;
-        //return 0;
+        matrix[cellX][cellY].state = CELL_ALIVE;
+        return 0;
     }
     else 
-        return matrix[cellX][cellY].state = CELL_DEAD;
+        {
+            matrix[cellX][cellY].state = CELL_DEAD;
+            return 0;
+        }
 }
+
+/*
+ * EXPERIMENTAL FUNCTION
+ * 
+ * Will act as a layer between the rules function and the main function
+ * should help with performance
+ *
+void* internal_Conway_Rules_Apply_Threaded(int cellX, int cellY, Automata **matrix, int canvW, int canvH, pthread_mutex_t* rulesMutex)
+{
+    pthread_mutex_lock(rulesMutex);
+    int live_Cells = internal_Conway_Rules_Count_Alive(matrix, cellX, cellY, canvW, canvH);
+    if((live_Cells == 2)  && (matrix[cellX][cellY].state == CELL_ALIVE))
+    {
+        matrix[cellX][cellY].state = CELL_ALIVE;
+        return 0;
+    }
+    else if(live_Cells == 3)
+    {
+        matrix[cellX][cellY].state = CELL_ALIVE;
+        return 0;
+    }
+    else 
+        {
+            matrix[cellX][cellY].state = CELL_DEAD;
+            return 0;
+        }
+    pthread_mutex_unlock;
+}
+*/
 
 
 
@@ -199,47 +205,49 @@ int internal_Conway_Rules_Apply(int cellX, int cellY, Automata **matrix, int liv
  * \Only logic, no rendering capabilities
  * \Takes the array, and it's dimensions 
  */ 
-int conway_Generation_Next(int canvW, int canvH, Automata **matrix)
+int conway_Generation_Next(int canvW, int canvH, Automata **matrix, Automata**matrix_Buffer)
 {
+    /*
+     * Could improve function by having the array be split up
+     * and the rules function  be threaded to deal with each section of the array.
+     *
+     * BIGGEST PERFORMANCE ISSUE IS THE RULES FUNCTION
+     */
+
+    /*
+     * WILL DEAL WITH THIS LATER, MY BRAIN IS TOO DEAD TO DO THIS RN
+    int numThreads = 1; 
+    pthread_t Threads[numThreads];
+
+    pthread_mutex_t rulesMutex;
+    pthread_mutex_init(&rulesMutex, NULL);
+
+    if(pthread_create(Threads[1], NULL, &internal_Conway_Rules_Apply_Threaded()) != 0)
+    {
+        printf("FAILED CREATING THREAD");
+    }
+    */
+
     //Creates a double buffer for the results to be stored into
-    Automata** matrix_Buffer = internal_Conway_Automata_Matrix_Create(canvW, canvH);
-    internal_Conway_Automata_Matrix_Copy(canvW, canvH, matrix, matrix_Buffer);
+    memcpy(&matrix_Buffer, &matrix, sizeof(matrix));
 
     for(int i = 0; i < canvW; i++)
     {
         for(int j = 0; j < canvH; j++)
         {
-            int live_Cells = 0; 
-            live_Cells = internal_Conway_Rules_Count_Alive(matrix_Buffer, i, j, canvW, canvH);
-
-            //matrix_Buffer[i][j].state = internal_Conway_Rules_Apply(i, j, matrix_Buffer, live_Cells);
-
-            if(((live_Cells == 2) || (live_Cells == 3)) && (matrix[i][j].state == CELL_ALIVE))
-            {
-                matrix[i][j].state = CELL_ALIVE;
-            }
-            else if(live_Cells == 3)
-            {
-                matrix[i][j].state = CELL_ALIVE;
-            }
-            else if((live_Cells < 2) || (live_Cells > 4))
-            {
-                matrix[i][j].state = CELL_DEAD;
-            }
+            internal_Conway_Rules_Apply(i, j, matrix_Buffer, canvW, canvH);
+            //internal_Conway_Rules_Apply_Threaded(i, j, matrix_Buffer, canvW, canvH, &rulesMutex);
         }
     }
-
-    //Destroy double buffer
-    //internal_Conway_Automata_Matrix_Copy(canvW, canvH, matrix_Buffer, matrix);
-
-    conway_Automata_Matrix_Destroy(matrix_Buffer, canvW, canvH);
-
+    //Swap buffers
+    memcpy(&matrix, &matrix_Buffer, sizeof(matrix));
     return 0;
 }
 
 /*-------------------------------------------------------------------------------*/
 
 //Random function to draw the matrix cuz I have no idea where to put it
+//TODO: find a way to implement SDL_RenderDrawPoints
 int SDL_Render_Emplace_Automata_Matrix(Automata** AutomataMatrix, int canvas_w, int canvas_h, SDL_Renderer* m_renderer, SDL_Texture* m_texture)
 {
     SDL_SetRenderTarget(m_renderer, m_texture);
@@ -250,7 +258,7 @@ int SDL_Render_Emplace_Automata_Matrix(Automata** AutomataMatrix, int canvas_w, 
             if(AutomataMatrix[i][j].state == CELL_ALIVE)
             {
                 SDL_SetRenderDrawColor(m_renderer, AutomataMatrix[i][j].r,AutomataMatrix[i][j].g,AutomataMatrix[i][j].b,AutomataMatrix[i][j].a);
-                SDL_RenderDrawPoint(m_renderer, AutomataMatrix[i][j].pos_X, AutomataMatrix[i][j].pos_Y);
+                SDL_RenderDrawPoint(m_renderer, i, j);
             }
         }
     }

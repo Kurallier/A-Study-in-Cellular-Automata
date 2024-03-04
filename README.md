@@ -22,9 +22,11 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 - Features & Functionality
     - [ ] Implement a main menu 
     - [ ] Real time adjustment to rules  
+    - [ ] Improved randomization of cells
     - Optimizations
         - [ ] Framerate/Game tick system 
         - [ ] ~~Endless refactoring~~
+        - [ ] Multithreading/multiprocessing
     - Game statistics 
         - [ ] Cell count
         - [ ] fps counter
