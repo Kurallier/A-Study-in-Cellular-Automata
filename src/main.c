@@ -76,6 +76,10 @@ int main(int argv, char *argc[])
         while(SDL_PollEvent(&windowEvent))
         {
             windowOpen = handle_Window_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H);
+
+            handle_Keyboard_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H);
+
+            handle_Mouse_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H, ConwayPixels);
         }
         //Wipe the texture and renderer white
         SDL_SetRenderTarget(m_Renderer, m_Texture);

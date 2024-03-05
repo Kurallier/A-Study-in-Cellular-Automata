@@ -1,12 +1,15 @@
 #include "../lib/sdl-events.h"
+#include "../lib/conwayEngine.h"
 #include <SDL2/SDL_events.h>
+#include <SDL2/SDL_mouse.h>
+#include <stdio.h>
 
 const int camZoom = 10;
+int windowOpen = 1;
 
 int handle_Window_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH)
 {
     // 1 if window open, 0 if closed
-    int windowOpen = 1;
 
 /*---------------------------- Basic Win Events -------------------------------*/
     switch(win_Event.type)
@@ -22,10 +25,14 @@ int handle_Window_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int s
             return windowOpen = 0;
             break;
     }
+    return windowOpen;
+}
 
-/*--------------------- WASD Events -----------------------------------------*/
-//TODO: Fix A+W && D+W && A+S && D+S
+int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH)
+{
     
+    /*--------------------- WASD Events -----------------------------------------*/
+    //TODO: Fix A+W && D+W && A+S && D+S
     switch (win_Event.type) 
     {
         case SDL_KEYDOWN:         
@@ -168,72 +175,28 @@ int handle_Window_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int s
         camS->h = camZoom;
         camS->w = camZoom;
     }
-
-
-    return windowOpen;
+    return 0;
 }
 
-/*
-//TODO, change to if statments
-switch(windowEvent.type)
+int handle_Mouse_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH, Automata** matrix)
 {
-case SDL_QUIT:
-windowOpen = 0;
-break;
+    int mouse_X = win_Event.motion.x;
+    int mouse_Y = win_Event.motion.y;
+    /*----------------------- Mouse Events --------------------------*/
+
+    if(win_Event.button.state == SDL_PRESSED)
+    {
+        if(win_Event.button.button == SDL_BUTTON_LEFT)
+        {
+            printf("Mouse button left detected X:%d, Y:%d\n", mouse_X, mouse_Y);
+            printf("%d\n",matrix[mouse_X][mouse_Y].state);
+            matrix[mouse_X][mouse_Y].state = CELL_DEAD;
+        }
+
+    }
+
+
+
+    return 0;
 }
 
-switch(windowEvent.key.keysym.sym)
-{
-case SDLK_ESCAPE:
-windowOpen = 0;
-break;
-//To move Camera
-//W is up, S is down, A is left, and D is right
-case SDLK_w:
-if(camSource.y > 0)
-{
-camSource.y -= 1;
-}
-break;
-case SDLK_s:
-if(camSource.y < CANVAS_H)
-{
-camSource.y += 1;
-}
-break;
-case SDLK_a:
-if(camSource.x > 0)
-{
-camSource.x -= 1;
-}
-break;
-case SDLK_d:
-if(camSource.x < CANVAS_W)
-{
-camSource.x += 1;
-}
-break;
-//To reset camera
-case SDLK_LSHIFT + SDLK_r:
-camSource.x = SCREEN_W/2;
-camSource.y = SCREEN_H/2;
-camSource.w = (double)SCREEN_W/32;
-camSource.h = (double)SCREEN_H/32;
-break;
-//To zoom in and out
-// 1 is zoom out
-// 2 is zoom in
-case SDLK_1:
-if(camSource.w * camSource.h < CANVAS_W * CANVAS_H)
-{
-camSource.w *= 1.1;
-camSource.h *= 1.1;
-}
-break;
-//TODO: WHY CAMERA BREAK???
-case SDLK_2:
-camSource.w /= 1.1;
-camSource.h /= 1.1;
-break;
-}
-*/

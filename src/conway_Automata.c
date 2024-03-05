@@ -1,6 +1,5 @@
 #include "../lib/conwayEngine.h"
 #include <pthread.h>
-#include <stdio.h>
 
 /*------------------------- Cell Matrix---------------------------------------------------------------------------*/
 
@@ -95,16 +94,6 @@ int conway_Automata_Matrix_Destroy(Automata** matrix, int row, int col)
 
 int conway_Automata_Matrix_Seed(Automata** matrix, int row, int col, int num)
 {
-    /*
-    for(size_t i = 0; i < row; i++)
-    {
-        for(size_t j = 0; j < col; j++)
-        {
-            matrix[i][j].state = (rand() % 3);
-        }
-    }
-    */
-
     for(size_t k = 0; k < num; k++)
     {
         matrix[(rand() % row)][(rand() % col)].state = CELL_ALIVE;
