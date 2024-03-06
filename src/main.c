@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <unistd.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
@@ -43,6 +44,10 @@ void Conways_Game_Of_Life_Running(Automata** Cell_Matrix, int canvas_W, int canv
 int main(int argv, char *argc[])
 {
 
+    /*
+     
+     
+     
     //internal_SDL_Init(m_Window, m_Renderer, m_Texture);
 
     //TODO: Window resizaeability 
@@ -63,6 +68,10 @@ int main(int argv, char *argc[])
     //The offsets create a border around the window
     SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
 
+
+
+    */
+
     Automata** ConwayPixels = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
     Automata** ConwayPixels_B = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
     //Randomize if pixels should be alive or not
@@ -72,6 +81,8 @@ int main(int argv, char *argc[])
     int windowOpen = 1;
     while(windowOpen != 0)
     {
+        /*
+         *
         SDL_Event windowEvent;
         while(SDL_PollEvent(&windowEvent))
         {
@@ -79,7 +90,7 @@ int main(int argv, char *argc[])
 
             handle_Keyboard_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H);
 
-            handle_Mouse_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H, ConwayPixels);
+            handle_Mouse_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H);
         }
         //Wipe the texture and renderer white
         SDL_SetRenderTarget(m_Renderer, m_Texture);
@@ -89,7 +100,11 @@ int main(int argv, char *argc[])
         //Draw the Automata Matrix
         SDL_Render_Emplace_Automata_Matrix(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
 
-        conway_Generation_Next(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
+
+        */
+
+        //conway_Generation_Next(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
+        conway_Generation_Next_Threaded(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
 
         //Conways_Game_Of_Life_Running(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
 
@@ -97,6 +112,7 @@ int main(int argv, char *argc[])
         //This breaks the camera movement
         //internal_SDL_Render_Camera_Resize(&camSource, &camPresentF, SCREEN_W, SCREEN_H, m_Window);
         
+        /*
         SDL_Render_Camera(&camSource, &camPresentF, m_Renderer, m_Texture);
 
         //Final draw call
@@ -104,13 +120,18 @@ int main(int argv, char *argc[])
 
         //Hacked 120fps
         SDL_Delay(8);
+        */
+        sleep(3);
+        windowOpen = 0;
     }
 
     //Destroys the matricies
     conway_Automata_Matrix_Destroy(ConwayPixels, CANVAS_W, CANVAS_H);
     conway_Automata_Matrix_Destroy(ConwayPixels_B, CANVAS_W, CANVAS_H);
 
+    /*
     SDL_Exit(m_Window, m_Renderer, m_Texture);
+    */
     return 0;
 }
 

@@ -1,5 +1,2 @@
-./OLD-FILES
-./bin/Makefile
-./bin/*.out
-./bin/*.o
-
+/OLD-FILES
+/bin/valgrind-out.*

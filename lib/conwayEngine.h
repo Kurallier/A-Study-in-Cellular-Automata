@@ -16,6 +16,7 @@ typedef struct Automata
 {
     //SDL_Point cellPoint;
     int pos_X, pos_Y;
+    int surrounding_live_cells;
     //R-G-B-A color values
     uint8_t r,g,b,a;
     cellState state;
@@ -32,6 +33,9 @@ int conway_Automata_Matrix_Seed(Automata** matrix, int row, int col, int num);
 
 int conway_Generation_Next(int canvW, int canvH, Automata** matrix, Automata**matrix_Buffer);
 
+int conway_Generation_Next_Threaded(int canvW, int canvH, Automata **matrix, Automata**matrix_Buffer);
+
 int SDL_Render_Emplace_Automata_Matrix(Automata** AutomataMatrix, int canvas_w, int canvas_h, SDL_Renderer* m_renderer, SDL_Texture* m_texture);
+
 
 #endif

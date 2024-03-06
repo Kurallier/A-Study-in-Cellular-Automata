@@ -178,7 +178,7 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
     return 0;
 }
 
-int handle_Mouse_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH, Automata** matrix)
+int handle_Mouse_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH)
 {
     int mouse_X = win_Event.motion.x;
     int mouse_Y = win_Event.motion.y;
@@ -189,8 +189,6 @@ int handle_Mouse_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int sc
         if(win_Event.button.button == SDL_BUTTON_LEFT)
         {
             printf("Mouse button left detected X:%d, Y:%d\n", mouse_X, mouse_Y);
-            printf("%d\n",matrix[mouse_X][mouse_Y].state);
-            matrix[mouse_X][mouse_Y].state = CELL_DEAD;
         }
 
     }

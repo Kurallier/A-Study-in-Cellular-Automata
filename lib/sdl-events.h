@@ -11,5 +11,5 @@ int handle_Window_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int s
 
 int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH);
 
-int handle_Mouse_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH, Automata** matrix);
+int handle_Mouse_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH);
 #endif

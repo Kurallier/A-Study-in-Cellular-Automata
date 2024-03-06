@@ -1,5 +1,7 @@
 #include "../lib/conwayEngine.h"
+#include <bits/pthreadtypes.h>
 #include <pthread.h>
+#include <stdio.h>
 
 /*------------------------- Cell Matrix---------------------------------------------------------------------------*/
 
@@ -135,45 +137,21 @@ int internal_Conway_Rules_Count_Alive(Automata** matrix, int cellX, int cellY, i
                 cell_Count++;
         }
     }
-    return cell_Count;
+    //Store the amount of live cells in the object
+    matrix[cellX][cellY].surrounding_live_cells = cell_Count;
+    return 0;
 }
 
 int internal_Conway_Rules_Apply(int cellX, int cellY, Automata **matrix, int canvW, int canvH)
 {
-    int live_Cells = internal_Conway_Rules_Count_Alive(matrix, cellX, cellY, canvW, canvH);
-    if((live_Cells == 2)  && (matrix[cellX][cellY].state == CELL_ALIVE))
-    {
-        matrix[cellX][cellY].state = CELL_ALIVE;
-        return 0;
-    }
-    else if(live_Cells == 3)
-    {
-        matrix[cellX][cellY].state = CELL_ALIVE;
-        return 0;
-    }
-    else 
-        {
-            matrix[cellX][cellY].state = CELL_DEAD;
-            return 0;
-        }
-}
+    internal_Conway_Rules_Count_Alive(matrix, cellX, cellY, canvW, canvH);
 
-/*
- * EXPERIMENTAL FUNCTION
- * 
- * Will act as a layer between the rules function and the main function
- * should help with performance
- *
-void* internal_Conway_Rules_Apply_Threaded(int cellX, int cellY, Automata **matrix, int canvW, int canvH, pthread_mutex_t* rulesMutex)
-{
-    pthread_mutex_lock(rulesMutex);
-    int live_Cells = internal_Conway_Rules_Count_Alive(matrix, cellX, cellY, canvW, canvH);
-    if((live_Cells == 2)  && (matrix[cellX][cellY].state == CELL_ALIVE))
+    if((matrix[cellX][cellY].surrounding_live_cells == 2)  && (matrix[cellX][cellY].state == CELL_ALIVE))
     {
         matrix[cellX][cellY].state = CELL_ALIVE;
         return 0;
     }
-    else if(live_Cells == 3)
+    else if(matrix[cellX][cellY].surrounding_live_cells == 3)
     {
         matrix[cellX][cellY].state = CELL_ALIVE;
         return 0;
@@ -183,9 +161,7 @@ void* internal_Conway_Rules_Apply_Threaded(int cellX, int cellY, Automata **matr
             matrix[cellX][cellY].state = CELL_DEAD;
             return 0;
         }
-    pthread_mutex_unlock;
 }
-*/
 
 
 
@@ -218,7 +194,7 @@ int conway_Generation_Next(int canvW, int canvH, Automata **matrix, Automata**ma
     */
 
     //Creates a double buffer for the results to be stored into
-    memcpy(&matrix_Buffer, &matrix, sizeof(matrix));
+    memcpy(matrix_Buffer, matrix, canvW * canvH * sizeof(Automata *));
 
     for(int i = 0; i < canvW; i++)
     {
@@ -229,9 +205,128 @@ int conway_Generation_Next(int canvW, int canvH, Automata **matrix, Automata**ma
         }
     }
     //Swap buffers
-    memcpy(&matrix, &matrix_Buffer, sizeof(matrix));
+    memcpy(matrix, matrix_Buffer, canvW * canvH * sizeof(Automata *));
+
     return 0;
 }
+
+// Define the struct for passing data to threads
+typedef struct RulesApplyParams
+{
+    int start_row;
+    int end_row;
+    //int cellX, cellY;
+    int canvW, canvH;
+    Automata** array;
+    pthread_mutex_t* mutex;
+}RulesApplyParams;
+/*
+ * EXPERIMENTAL FUNCTION
+ * 
+ * Will act as a layer between the rules function and the main function
+ * should help with performance
+ */
+void* internal_Conway_Rules_Apply_Threaded(/*RulesApplyParams* RulesApplyData*/ void* RulesApplyData)
+{
+    RulesApplyParams* RulesApplyParam = (RulesApplyParams *)RulesApplyData;
+
+    pthread_mutex_lock(RulesApplyParam->mutex);
+    for (int i = RulesApplyParam->start_row; i <= RulesApplyParam->end_row; i++) 
+    {
+        for (int j = 0; j < RulesApplyParam->canvH; j++) 
+        {
+            internal_Conway_Rules_Count_Alive(RulesApplyParam->array, i, j, RulesApplyParam->canvW, RulesApplyParam->canvH);
+            /*
+            if((RulesApplyParam->array[i][j].surrounding_live_cells == 2)  && (RulesApplyParam->array[i][j].state == CELL_ALIVE))
+            {
+                RulesApplyParam->array[i][j].state = CELL_ALIVE;
+            }
+            else if(RulesApplyParam->array[i][j].surrounding_live_cells == 3)
+            {
+                RulesApplyParam->array[i][j].state = CELL_ALIVE;
+            }
+            else 
+            {
+                RulesApplyParam->array[i][j].state = CELL_DEAD;
+            }
+            */
+        }
+    }
+    pthread_mutex_unlock(RulesApplyParam->mutex);
+
+    /*
+    for(int i = 0; i < canvW; i++)
+    {
+        for(int j = 0; j < canvH; j++)
+        {
+
+            //pthread_mutex_lock(&rulesMutex);
+            internal_Conway_Rules_Count_Alive(matrix, i, j, canvW, canvH);
+
+        }
+    }
+    */
+    return 0;
+}
+
+int conway_Generation_Next_Threaded(int canvW, int canvH, Automata **matrix, Automata**matrix_Buffer)
+{
+    /*
+     * Could improve function by having the array be split up
+     * and the rules function  be threaded to deal with each section of the array.
+     */
+    //Creates a double buffer for the results to be stored into
+    memcpy(matrix_Buffer, matrix, canvW * canvH * sizeof(Automata *));
+/*------------ Thread init ------------------------*/
+    const int NUM_THREADS = 4;
+
+    // Create mutex
+    pthread_mutex_t mutex;
+    pthread_mutex_init(&mutex, NULL);
+
+    // Create threads
+    pthread_t threads[NUM_THREADS];
+    RulesApplyParams RulesApplyParam[NUM_THREADS];
+
+    int rows_per_thread = canvW / NUM_THREADS;
+    for (int i = 0; i < NUM_THREADS; i++) 
+    {
+        RulesApplyParam[i].array = matrix_Buffer;
+        RulesApplyParam[i].start_row = i * rows_per_thread;
+        RulesApplyParam[i].end_row = ((i + 1) * rows_per_thread - 1);
+        RulesApplyParam[i].mutex = &mutex;
+        pthread_create(&threads[i], NULL, internal_Conway_Rules_Apply_Threaded, (void *)&RulesApplyParam[i]);
+    }
+
+    // Wait for threads to finish
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    /*
+    for(int i = 0; i < canvW; i++)
+    {
+        RulesApplyParams.cellX = i;
+        for(int j = 0; j < canvH; j++)
+        {
+            RulesApplyParams.cellY = j;
+            //internal_Conway_Rules_Apply_Threaded(i, j, matrix_Buffer, canvW, canvH, &rulesMutex);
+            //internal_Conway_Rules_Apply(i, j, matrix_Buffer, canvW, canvH);
+        }
+    }
+    */
+
+    //Swap buffers
+    memcpy(matrix, matrix_Buffer, canvW * canvH * sizeof(Automata *));
+
+    // Destroy mutex
+    pthread_mutex_destroy(&mutex);
+
+    return 0;
+}
+
+
+
 
 /*-------------------------------------------------------------------------------*/
 
