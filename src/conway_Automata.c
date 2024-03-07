@@ -1,6 +1,8 @@
 #include "../lib/conwayEngine.h"
+#include <SDL2/SDL_error.h>
+#include <SDL2/SDL_mutex.h>
+#include <SDL2/SDL_thread.h>
 #include <bits/pthreadtypes.h>
-#include <pthread.h>
 #include <stdio.h>
 
 /*------------------------- Cell Matrix---------------------------------------------------------------------------*/
@@ -218,7 +220,7 @@ typedef struct RulesApplyParams
     //int cellX, cellY;
     int canvW, canvH;
     Automata** array;
-    pthread_mutex_t* mutex;
+    SDL_mutex* mutex;
 }RulesApplyParams;
 /*
  * EXPERIMENTAL FUNCTION
@@ -226,17 +228,18 @@ typedef struct RulesApplyParams
  * Will act as a layer between the rules function and the main function
  * should help with performance
  */
-void* internal_Conway_Rules_Apply_Threaded(/*RulesApplyParams* RulesApplyData*/ void* RulesApplyData)
+int internal_Conway_Rules_Apply_Threaded(/*RulesApplyParams* RulesApplyData*/ void* RulesApplyData)
 {
-    RulesApplyParams* RulesApplyParam = (RulesApplyParams *)RulesApplyData;
+    RulesApplyParams* RulesApplyParam = RulesApplyData;
 
-    pthread_mutex_lock(RulesApplyParam->mutex);
+    SDL_LockMutex(RulesApplyParam->mutex);
     for (int i = RulesApplyParam->start_row; i <= RulesApplyParam->end_row; i++) 
     {
         for (int j = 0; j < RulesApplyParam->canvH; j++) 
         {
+
             internal_Conway_Rules_Count_Alive(RulesApplyParam->array, i, j, RulesApplyParam->canvW, RulesApplyParam->canvH);
-            /*
+
             if((RulesApplyParam->array[i][j].surrounding_live_cells == 2)  && (RulesApplyParam->array[i][j].state == CELL_ALIVE))
             {
                 RulesApplyParam->array[i][j].state = CELL_ALIVE;
@@ -249,10 +252,10 @@ void* internal_Conway_Rules_Apply_Threaded(/*RulesApplyParams* RulesApplyData*/ 
             {
                 RulesApplyParam->array[i][j].state = CELL_DEAD;
             }
-            */
+
         }
     }
-    pthread_mutex_unlock(RulesApplyParam->mutex);
+    SDL_UnlockMutex(RulesApplyParam->mutex);
 
     /*
     for(int i = 0; i < canvW; i++)
@@ -281,26 +284,49 @@ int conway_Generation_Next_Threaded(int canvW, int canvH, Automata **matrix, Aut
     const int NUM_THREADS = 4;
 
     // Create mutex
-    pthread_mutex_t mutex;
-    pthread_mutex_init(&mutex, NULL);
+    SDL_mutex* RulesMutex;
+    RulesMutex = SDL_CreateMutex();
+    if(!RulesMutex)
+    {
+        printf("Failed to create mutex: %s\n", SDL_GetError()); 
+        return 1;
+    }
 
-    // Create threads
-    pthread_t threads[NUM_THREADS];
-    RulesApplyParams RulesApplyParam[NUM_THREADS];
+    // Init threads
+    SDL_Thread* threads[NUM_THREADS];
+    RulesApplyParams *RulesApplyParam = malloc(NUM_THREADS * sizeof(RulesApplyParams));
+    if (RulesApplyParam == NULL) 
+    {
+    // Handle memory allocation failure
+        printf("Failed to malloc thread params");
+        return 1;
+    }
 
     int rows_per_thread = canvW / NUM_THREADS;
+
+    //Create the threads and pass args 
     for (int i = 0; i < NUM_THREADS; i++) 
     {
+        //FIX: I suspect that the math used to calc the start and end row are causing graphical error
         RulesApplyParam[i].array = matrix_Buffer;
         RulesApplyParam[i].start_row = i * rows_per_thread;
         RulesApplyParam[i].end_row = ((i + 1) * rows_per_thread - 1);
-        RulesApplyParam[i].mutex = &mutex;
-        pthread_create(&threads[i], NULL, internal_Conway_Rules_Apply_Threaded, (void *)&RulesApplyParam[i]);
+        RulesApplyParam[i].mutex = RulesMutex;
+
+        threads[i] = SDL_CreateThread(internal_Conway_Rules_Apply_Threaded, "Rule compute thread", &RulesApplyParam[i]);
+        if (!threads[i]) 
+        {
+            printf("SDL thread creation failed: %s\n", SDL_GetError());
+            SDL_DestroyMutex(RulesMutex);
+            free(RulesApplyParam);
+            return 1;
+        }
     }
 
     // Wait for threads to finish
-    for (int i = 0; i < NUM_THREADS; i++) {
-        pthread_join(threads[i], NULL);
+    for (int i = 0; i < NUM_THREADS; i++) 
+    {
+        SDL_WaitThread(threads[i], NULL);
     }
 
     /*
@@ -320,7 +346,9 @@ int conway_Generation_Next_Threaded(int canvW, int canvH, Automata **matrix, Aut
     memcpy(matrix, matrix_Buffer, canvW * canvH * sizeof(Automata *));
 
     // Destroy mutex
-    pthread_mutex_destroy(&mutex);
+    SDL_DestroyMutex(RulesMutex);
+    //Free array 
+    free(RulesApplyParam);
 
     return 0;
 }

@@ -4,7 +4,8 @@
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <SDL2/SDL_thread.h>
+#include <SDL2/SDL_mutex.h>
 
 typedef enum cellState
 {

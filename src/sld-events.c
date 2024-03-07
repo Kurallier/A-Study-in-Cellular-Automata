@@ -168,12 +168,15 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
     }
 
     //Camera reset keybind
-    if((win_Event.key.keysym.sym == SDLK_LSHIFT) && SDLK_r) 
+    if(win_Event.key.keysym.sym == SDLK_LSHIFT) 
     {
+        if(win_Event.key.keysym.sym == SDLK_r)
+        {
         camS->x = screenW/2;
         camS->y = screenH/2;
         camS->h = camZoom;
         camS->w = camZoom;
+        }
     }
     return 0;
 }

@@ -44,7 +44,6 @@ void Conways_Game_Of_Life_Running(Automata** Cell_Matrix, int canvas_W, int canv
 int main(int argv, char *argc[])
 {
 
-    /*
      
      
      
@@ -70,7 +69,6 @@ int main(int argv, char *argc[])
 
 
 
-    */
 
     Automata** ConwayPixels = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
     Automata** ConwayPixels_B = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
@@ -81,8 +79,6 @@ int main(int argv, char *argc[])
     int windowOpen = 1;
     while(windowOpen != 0)
     {
-        /*
-         *
         SDL_Event windowEvent;
         while(SDL_PollEvent(&windowEvent))
         {
@@ -100,9 +96,6 @@ int main(int argv, char *argc[])
         //Draw the Automata Matrix
         SDL_Render_Emplace_Automata_Matrix(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
 
-
-        */
-
         //conway_Generation_Next(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
         conway_Generation_Next_Threaded(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
 
@@ -112,7 +105,6 @@ int main(int argv, char *argc[])
         //This breaks the camera movement
         //internal_SDL_Render_Camera_Resize(&camSource, &camPresentF, SCREEN_W, SCREEN_H, m_Window);
         
-        /*
         SDL_Render_Camera(&camSource, &camPresentF, m_Renderer, m_Texture);
 
         //Final draw call
@@ -120,33 +112,28 @@ int main(int argv, char *argc[])
 
         //Hacked 120fps
         SDL_Delay(8);
-        */
-        sleep(3);
-        windowOpen = 0;
     }
 
     //Destroys the matricies
     conway_Automata_Matrix_Destroy(ConwayPixels, CANVAS_W, CANVAS_H);
     conway_Automata_Matrix_Destroy(ConwayPixels_B, CANVAS_W, CANVAS_H);
 
-    /*
     SDL_Exit(m_Window, m_Renderer, m_Texture);
-    */
     return 0;
 }
 
-int internal_SDL_Init(SDL_Window* m_Window, SDL_Renderer* m_Renderer, SDL_Texture* m_Texture)
+int internal_SDL_Init(SDL_Window* Window, SDL_Renderer* Renderer, SDL_Texture* Texture)
 {
-    m_Window = SDL_CreateWindow(
+    Window = SDL_CreateWindow(
             WINDOW_NAME, 
             SDL_WINDOWPOS_UNDEFINED, 
             SDL_WINDOWPOS_UNDEFINED, 
             SCREEN_W, SCREEN_H, 
             SDL_WINDOW_RESIZABLE | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI);
 
-    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+    Renderer = SDL_CreateRenderer(m_Window, -1, 0);
 
-    m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
+    Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
 
     return 0;
 }
