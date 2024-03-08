@@ -6,6 +6,7 @@ To study Manovich's third characteristic of "new media" via Cellular Automata.
 [*New Media: A User's Guide*](http://manovich.net/index.php/projects/new-media-a-user-s-guide)
 
 The 1.0 release of this project will have Conway's Game of Life, with a complete features for a complete experience. The sucessive releases will be the implementations of iterations on Conway's Game of Life
+
 ## Why?:
 
 ## How:
