@@ -141,13 +141,30 @@ int internal_Conway_Rules_Count_Alive(Automata** matrix, int cellX, int cellY, i
     }
     //Store the amount of live cells in the object
     matrix[cellX][cellY].surrounding_live_cells = cell_Count;
-    return 0;
+    return cell_Count;
 }
 
 int internal_Conway_Rules_Apply(int cellX, int cellY, Automata **matrix, int canvW, int canvH)
 {
-    internal_Conway_Rules_Count_Alive(matrix, cellX, cellY, canvW, canvH);
+    int aliv_Cells;
+    aliv_Cells = internal_Conway_Rules_Count_Alive(matrix, cellX, cellY, canvW, canvH);
 
+    if((aliv_Cells == 2)  && (matrix[cellX][cellY].state == CELL_ALIVE))
+    {
+        matrix[cellX][cellY].state = CELL_ALIVE;
+        return 0;
+    }
+    else if(aliv_Cells == 3)
+    {
+        matrix[cellX][cellY].state = CELL_ALIVE;
+        return 0;
+    }
+    else 
+        {
+            matrix[cellX][cellY].state = CELL_DEAD;
+            return 0;
+        }
+    /*
     if((matrix[cellX][cellY].surrounding_live_cells == 2)  && (matrix[cellX][cellY].state == CELL_ALIVE))
     {
         matrix[cellX][cellY].state = CELL_ALIVE;
@@ -163,6 +180,7 @@ int internal_Conway_Rules_Apply(int cellX, int cellY, Automata **matrix, int can
             matrix[cellX][cellY].state = CELL_DEAD;
             return 0;
         }
+        */
 }
 
 
@@ -181,22 +199,9 @@ int conway_Generation_Next(int canvW, int canvH, Automata **matrix, Automata**ma
      * BIGGEST PERFORMANCE ISSUE IS THE RULES FUNCTION
      */
 
-    /*
-     * WILL DEAL WITH THIS LATER, MY BRAIN IS TOO DEAD TO DO THIS RN
-    int numThreads = 1; 
-    pthread_t Threads[numThreads];
-
-    pthread_mutex_t rulesMutex;
-    pthread_mutex_init(&rulesMutex, NULL);
-
-    if(pthread_create(Threads[1], NULL, &internal_Conway_Rules_Apply_Threaded()) != 0)
-    {
-        printf("FAILED CREATING THREAD");
-    }
-    */
-
     //Creates a double buffer for the results to be stored into
-    memcpy(matrix_Buffer, matrix, canvW * canvH * sizeof(Automata *));
+    //memcpy(matrix_Buffer, matrix, canvW * canvH * sizeof(Automata *));
+    memcpy(&matrix_Buffer, &matrix, sizeof(matrix));
 
     for(int i = 0; i < canvW; i++)
     {
@@ -207,7 +212,8 @@ int conway_Generation_Next(int canvW, int canvH, Automata **matrix, Automata**ma
         }
     }
     //Swap buffers
-    memcpy(matrix, matrix_Buffer, canvW * canvH * sizeof(Automata *));
+    //memcpy(matrix, matrix_Buffer, canvW * canvH * sizeof(Automata *));
+    memcpy(&matrix, &matrix_Buffer, sizeof(matrix));
 
     return 0;
 }
@@ -279,7 +285,7 @@ int conway_Generation_Next_Threaded(int canvW, int canvH, Automata **matrix, Aut
      * and the rules function  be threaded to deal with each section of the array.
      */
     //Creates a double buffer for the results to be stored into
-    memcpy(matrix_Buffer, matrix, canvW * canvH * sizeof(Automata *));
+    memcpy(&matrix_Buffer, &matrix, sizeof(matrix));
 /*------------ Thread init ------------------------*/
     const int NUM_THREADS = 4;
 
@@ -343,7 +349,7 @@ int conway_Generation_Next_Threaded(int canvW, int canvH, Automata **matrix, Aut
     */
 
     //Swap buffers
-    memcpy(matrix, matrix_Buffer, canvW * canvH * sizeof(Automata *));
+    memcpy(&matrix, &matrix_Buffer, sizeof(matrix));
 
     // Destroy mutex
     SDL_DestroyMutex(RulesMutex);

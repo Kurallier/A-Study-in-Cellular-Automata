@@ -17,11 +17,15 @@
 //Setting defualt window values
 const char WINDOW_NAME[] = "A Study in Cellular Automata";
 //The canvas is where the game(s) will take place, and is the size of the texture
-const size_t CANVAS_W = 2500;
-const size_t CANVAS_H = 2500;
+const size_t CANVAS_W = 1240;
+const size_t CANVAS_H = 1080;
 //The screen width and height are for the camera; what is to be shown to the user
 const size_t SCREEN_W = 1240;
 const size_t SCREEN_H = 1080;
+//Some cam stuff
+size_t CAM_X = CANVAS_W / 2;
+size_t CAM_Y = CANVAS_H / 2;
+const size_t CAM_MAGNI = 4;
 //An array that holds relevant RGBA colors
 const size_t BACKGROUND_COLOR[] = {41, 41, 48, 1};
 const size_t CELL_COLOR[] = {239, 107, 31, 1};
@@ -57,23 +61,39 @@ int main(int argv, char *argc[])
             SCREEN_W, SCREEN_H, 
             SDL_WINDOW_RESIZABLE | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI);
 
-    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+    m_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_ACCELERATED);
 
     m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
 
     //TODO: Make the camera it's own structure/object. Should have both the source and present, xVel yVel, zoomVel
     //Divide screen by 32 to zoom(stretch) texture 
-    SDL_Rect camSource = {SCREEN_W/2, SCREEN_H/2, (double)SCREEN_W/10, (double)SCREEN_H/10};
+    Camera PlayerCam;
+    /*
+    PlayerCam.screenW = SCREEN_W;
+    PlayerCam.screenH = SCREEN_H;
+
+    PlayerCam.camS.x = SCREEN_W/2;
+    PlayerCam.camS.y = SCREEN_H/2;
+    PlayerCam.camS.w = (double)SCREEN_W/camMagni;
+    PlayerCam.camS.h = (double)SCREEN_H/camMagni;
+
+    //The offsets create a border around the window
+    PlayerCam.camS.x = 10;
+    PlayerCam.camS.y = 10;
+    PlayerCam.camS.w = SCREEN_W - 20;
+    PlayerCam.camS.h = SCREEN_H - 20;
+    */
+
+    SDL_Rect camSource = {CAM_X, CAM_Y, (double)SCREEN_W/CAM_MAGNI, (double)SCREEN_H/CAM_MAGNI};
     //The offsets create a border around the window
     SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
-
 
 
 
     Automata** ConwayPixels = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
     Automata** ConwayPixels_B = conway_Automata_Matrix_Init(CANVAS_W, CANVAS_H, CELL_COLOR[0], CELL_COLOR[1], CELL_COLOR[2], 255);
     //Randomize if pixels should be alive or not
-    conway_Automata_Matrix_Seed(ConwayPixels, CANVAS_W, CANVAS_H, (SCREEN_W*SCREEN_H)/6);
+    conway_Automata_Matrix_Seed(ConwayPixels, CANVAS_W, CANVAS_H, (SCREEN_W*SCREEN_H)/18);
 
     //Main loop
     int windowOpen = 1;
@@ -84,20 +104,56 @@ int main(int argv, char *argc[])
         {
             windowOpen = handle_Window_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H);
 
-            handle_Keyboard_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H);
+            //handle_Keyboard_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H, CANVAS_W, CANVAS_H);
 
-            handle_Mouse_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H);
+            if(windowEvent.key.keysym.sym == SDLK_r)
+            {
+                for(size_t i = 0; i < CANVAS_W; i++)
+                {
+                    for(size_t j = 0; j < CANVAS_H; j++)
+                    {
+                        ConwayPixels[i][j].state = CELL_DEAD;
+                    }
+                }
+                conway_Automata_Matrix_Seed(ConwayPixels, CANVAS_W, CANVAS_H, (SCREEN_W*SCREEN_H)/20);
+                SDL_Delay(150);
+            }
+
+            /*
+            printf("camS X:%d Y:%d\n", camSource.x, camSource.y);
+            printf("Boudry X:%d ",(int)(CANVAS_W));
+            printf("Boudry Y:%d\n",(int)(CANVAS_H));
+            if (CAM_X < 0) {
+                CAM_X = 0;
+            }
+            if (CAM_Y < 0) {
+                CAM_Y = 0;
+            }
+            if (CAM_X > CANVAS_W - SCREEN_W) {
+                CAM_X = CANVAS_W - SCREEN_W;
+            }
+            if (CAM_Y > CANVAS_H - SCREEN_H) {
+                CAM_Y = CANVAS_H - SCREEN_H;
+            }
+
+            // Update the source rectangle
+            camSource.x = CAM_X + (CANVAS_W - SCREEN_W)/2;
+            camSource.y = CAM_Y + (CANVAS_H - SCREEN_H)/2;
+            */
+
+            handle_Mouse_Events(windowEvent, &camSource, SCREEN_W, SCREEN_H, CANVAS_W, CANVAS_H);
         }
         //Wipe the texture and renderer white
         SDL_SetRenderTarget(m_Renderer, m_Texture);
         SDL_SetRenderDrawColor(m_Renderer, BACKGROUND_COLOR[0],BACKGROUND_COLOR[1],BACKGROUND_COLOR[2], SDL_ALPHA_OPAQUE);
         SDL_RenderClear(m_Renderer);
 
+        conway_Generation_Next(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
+
         //Draw the Automata Matrix
         SDL_Render_Emplace_Automata_Matrix(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
 
-        //conway_Generation_Next(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
-        conway_Generation_Next_Threaded(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
+        //conway_Generation_Next_Threaded(CANVAS_W, CANVAS_H, ConwayPixels, ConwayPixels_B);
 
         //Conways_Game_Of_Life_Running(ConwayPixels, CANVAS_W, CANVAS_H, m_Renderer, m_Texture);
 
@@ -105,13 +161,14 @@ int main(int argv, char *argc[])
         //This breaks the camera movement
         //internal_SDL_Render_Camera_Resize(&camSource, &camPresentF, SCREEN_W, SCREEN_H, m_Window);
         
+
         SDL_Render_Camera(&camSource, &camPresentF, m_Renderer, m_Texture);
 
         //Final draw call
         SDL_RenderPresent(m_Renderer);
 
-        //Hacked 120fps
-        SDL_Delay(8);
+        //Hacked 60fps
+        SDL_Delay(128);
     }
 
     //Destroys the matricies
@@ -148,6 +205,7 @@ void SDL_Exit(SDL_Window* main_Window, SDL_Renderer* main_Renderer, SDL_Texture*
 
 int SDL_Render_Camera(SDL_Rect* camSource, SDL_FRect* camPresentF, SDL_Renderer* renderer, SDL_Texture* texture)
 {
+
     SDL_SetRenderTarget(renderer, NULL);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);

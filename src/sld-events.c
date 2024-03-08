@@ -16,6 +16,7 @@ int handle_Window_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int s
     {
         case SDL_QUIT:
             return windowOpen = 0; 
+            exit(0);
             break;
     }
 
@@ -23,15 +24,15 @@ int handle_Window_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int s
     {
         case SDLK_ESCAPE:
             return windowOpen = 0;
+            exit(0);
             break;
     }
     return windowOpen;
 }
 
-int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH)
+int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH, int canv_W, int canv_H)
 {
     
-    /*--------------------- WASD Events -----------------------------------------*/
     //TODO: Fix A+W && D+W && A+S && D+S
     switch (win_Event.type) 
     {
@@ -39,6 +40,7 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
             break;
     }
 
+    /*--------------------- WASD Events -----------------------------------------*/
     //Right && Up/Down
     /*
     if((win_Event.key.keysym.sym == SDLK_d) && (win_Event.key.keysym.sym == SDLK_w))
@@ -66,7 +68,6 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
             camS->y += 1;
         }
     }
-    */
     //Up || Down
     if(win_Event.key.keysym.sym == SDLK_w)
     {
@@ -77,9 +78,9 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
     }
     else if(win_Event.key.keysym.sym == SDLK_s)
     {
-        if(camS->y < screenH)
+        camS->y += 1;
+        if((camS->y) < canv_H)
         {
-            camS->y += 1;
         }
     }
 
@@ -91,20 +92,19 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
             camS->x -= 1;
         }
     }
+    */
     /*Streches the texture a little bit, I don't know why for certain.
      *I'm going to assume it has to do with the cameraPresent offset
      *Not bad enought to warrant a fix for now
-     */
     else if(win_Event.key.keysym.sym == SDLK_d)
     {
-        if(camS->x < screenW)
+        camS->x += 1;
+        if((camS->x) < canv_W)
         {
-            camS->x += 1;
         }
     }
 
     // Left && Up/Down
-    /*
     if((win_Event.key.keysym.sym == SDLK_a) && (win_Event.key.keysym.sym == SDLK_w))
     {
         if (camS->x > 0) 
@@ -138,6 +138,7 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
 //TODO: Fix camera zoom in and out
     
     // Camera zoom; 1 to zoom in, 2 for out
+    /*
     if(win_Event.key.keysym.sym == SDLK_1)
     {
         if((camS->w > screenW/32) && (camS->h > screenH/32))
@@ -164,10 +165,11 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
                 camS->w *= 1.1;
             }
         }
-        */
     }
+        */
 
     //Camera reset keybind
+    /*
     if(win_Event.key.keysym.sym == SDLK_LSHIFT) 
     {
         if(win_Event.key.keysym.sym == SDLK_r)
@@ -178,10 +180,11 @@ int handle_Keyboard_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int
         camS->w = camZoom;
         }
     }
+    */
     return 0;
 }
 
-int handle_Mouse_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH)
+int handle_Mouse_Events(SDL_Event win_Event, SDL_Rect* camS, int screenW, int screenH, int canv_W, int canv_H)
 {
     int mouse_X = win_Event.motion.x;
     int mouse_Y = win_Event.motion.y;
