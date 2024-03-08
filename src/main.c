@@ -1,4 +1,7 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_pixels.h>
+#include <SDL2/SDL_stdinc.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_rect.h>
@@ -10,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "../lib/conwayEngine.h"
 #include "../lib/sdl-events.h"
@@ -33,41 +37,42 @@ const size_t CELL_COLOR[] = {239, 107, 31, 1};
 SDL_Window* m_Window;
 SDL_Renderer* m_Renderer;
 SDL_Texture* m_Texture;
+SDL_Surface* m_Surface;
+TTF_Font* m_Font;
+
+const char FONT_PATH[] = "../assets/KarmaSuture.ttf";
+SDL_Color FontColor = {255,255,255,255};
+SDL_Rect rectText = {10, 10, 150, 25};
+
 
 //SDL cleanup
-void SDL_Exit(SDL_Window* main_Window, SDL_Renderer*, SDL_Texture*);
+void SDL_Exit();
 //Used to prepare the camera for drawing
 int SDL_Render_Camera(SDL_Rect*, SDL_FRect*, SDL_Renderer*, SDL_Texture*);
 
+int internal_TTF_Cell_Counter(Automata**);
+
 int internal_SDL_Render_Camera_Resize(SDL_Rect* camS, SDL_FRect* camPresF, int screenW, int screenH, SDL_Window*);
 
-int internal_SDL_Init(SDL_Window* m_Window, SDL_Renderer* m_Renderer, SDL_Texture* m_Texture);
+int internal_SDL_Init();
 
 void Conways_Game_Of_Life_Running(Automata** Cell_Matrix, int canvas_W, int canvas_H, SDL_Renderer* m_renderer, SDL_Texture* m_texture);
 
 int main(int argv, char *argc[])
 {
+    internal_SDL_Init();
 
-     
-     
-     
-    //internal_SDL_Init(m_Window, m_Renderer, m_Texture);
+
+/*--------------------------------- Font Texure --------------------------------*/
+
+
 
     //TODO: Window resizaeability 
-    m_Window = SDL_CreateWindow(
-            WINDOW_NAME, 
-            SDL_WINDOWPOS_UNDEFINED, 
-            SDL_WINDOWPOS_UNDEFINED, 
-            SCREEN_W, SCREEN_H, 
-            SDL_WINDOW_RESIZABLE | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI);
-
-    m_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_ACCELERATED);
-
-    m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
 
     //TODO: Make the camera it's own structure/object. Should have both the source and present, xVel yVel, zoomVel
+    
     //Divide screen by 32 to zoom(stretch) texture 
-    Camera PlayerCam;
+    //Camera PlayerCam;
     /*
     PlayerCam.screenW = SCREEN_W;
     PlayerCam.screenH = SCREEN_H;
@@ -86,7 +91,7 @@ int main(int argv, char *argc[])
 
     SDL_Rect camSource = {CAM_X, CAM_Y, (double)SCREEN_W/CAM_MAGNI, (double)SCREEN_H/CAM_MAGNI};
     //The offsets create a border around the window
-    SDL_FRect camPresentF = { 10, 10, SCREEN_W-20, SCREEN_H-20};
+    SDL_FRect camPresentF = { 5, 5, SCREEN_W-10, SCREEN_H-10};
 
 
 
@@ -164,42 +169,100 @@ int main(int argv, char *argc[])
 
         SDL_Render_Camera(&camSource, &camPresentF, m_Renderer, m_Texture);
 
+        internal_TTF_Cell_Counter(ConwayPixels);
+        
+
         //Final draw call
         SDL_RenderPresent(m_Renderer);
 
         //Hacked 60fps
-        SDL_Delay(128);
+        SDL_Delay(64);
     }
 
     //Destroys the matricies
     conway_Automata_Matrix_Destroy(ConwayPixels, CANVAS_W, CANVAS_H);
     conway_Automata_Matrix_Destroy(ConwayPixels_B, CANVAS_W, CANVAS_H);
 
-    SDL_Exit(m_Window, m_Renderer, m_Texture);
+    SDL_Exit();
     return 0;
 }
 
-int internal_SDL_Init(SDL_Window* Window, SDL_Renderer* Renderer, SDL_Texture* Texture)
+int internal_TTF_Cell_Counter(Automata** matrix)
 {
-    Window = SDL_CreateWindow(
+    int count = 0;
+
+    for(size_t i = 0; i < CANVAS_W; i++)
+    {
+        for(size_t j = 0; j < CANVAS_H; j++)
+        {
+            if(matrix[i][j].state == CELL_ALIVE)
+            {
+                count++;
+            }
+        }
+    }
+
+    char intStr[12];
+    char text[100] = "Alive Cells: ";
+
+    SDL_itoa(count, intStr, 10);
+    SDL_strlcat(text, intStr, 100);
+
+    SDL_Surface* surfaceText = TTF_RenderText_Solid(m_Font, text, FontColor);
+
+    SDL_Texture* textureText = SDL_CreateTextureFromSurface(m_Renderer, surfaceText);
+
+    SDL_FreeSurface(surfaceText);
+
+    SDL_RenderCopy(m_Renderer, textureText, NULL, &rectText);
+
+    return 0;
+}
+
+
+int internal_SDL_Init()
+{
+    if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
+    {
+        printf("FAILED TO INIT: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    if(TTF_Init() != 0)
+    {
+        printf("FAILED TO INIT TTF: %s\n", TTF_GetError());
+        exit(1);
+    }
+
+    m_Window = SDL_CreateWindow(
             WINDOW_NAME, 
             SDL_WINDOWPOS_UNDEFINED, 
             SDL_WINDOWPOS_UNDEFINED, 
             SCREEN_W, SCREEN_H, 
             SDL_WINDOW_RESIZABLE | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI);
 
-    Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
 
-    Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
+    m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, CANVAS_W, CANVAS_H);
+
+
+    m_Font = TTF_OpenFont(FONT_PATH, 32);
+    if(!m_Font)
+    {
+        printf("Failed to load font");
+        exit(1);
+    }
 
     return 0;
 }
 
-void SDL_Exit(SDL_Window* main_Window, SDL_Renderer* main_Renderer, SDL_Texture* main_Texture)
+void SDL_Exit()
 {
-    SDL_DestroyWindow(main_Window);
-    SDL_DestroyRenderer(main_Renderer);
-    SDL_DestroyTexture(main_Texture);
+    SDL_DestroyWindow(m_Window);
+    SDL_DestroyRenderer(m_Renderer);
+    SDL_DestroyTexture(m_Texture);
+    for(size_t i = 0; i <= TTF_WasInit(); i++)
+        TTF_Quit();
     SDL_Quit();
 }
 

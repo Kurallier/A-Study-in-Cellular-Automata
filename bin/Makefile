@@ -1,8 +1,8 @@
 gcc:
-	gcc -std=c17 ../src/*.c -Wall -Wshadow -Wdouble-promotion -Wformat=2 -Wformat-truncation -fno-common -Wformat-overflow -g -g3 -ggdb3 -I../lib/*.h -L../lib -o main.out `sdl2-config --cflags --libs` -lSDL2_image
+	gcc -std=c17 ../src/*.c -Wall -Wshadow -Wdouble-promotion -Wformat=2 -Wformat-truncation -fno-common -Wformat-overflow -g -g3 -ggdb3 -I../lib/*.h -L../lib -o prog `sdl2-config --cflags --libs` -lSDL2_image -lSDL2_ttf
 
 clang:
-	clang -std=c17 ../src/*.c -Wall -Wshadow -Wdouble-promotion -fno-common -g -g3 -ggdb3 -I../lib/*.h -L../lib -o main.out `sdl2-config --cflags --libs` -lSDL2_image
+	clang -std=c17 ../src/*.c -Wall -Wshadow -Wdouble-promotion -fno-common -g -g3 -ggdb3 -I../lib/*.h -L../lib -o main.out `sdl2-config --cflags --libs` -lSDL2_image -lSDL2_ttf
 
 valgrind:
 	valgrind --leak-check=full -s --track-origins=yes --log-file=valgrind-out.txt ./main.out  
